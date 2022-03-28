@@ -89,9 +89,12 @@ app.post("/register",async(req,res)=>{
 
 app.get("/todos", async(req,res) => {
     try {
-        let user = verifyToken(req.headers)
-        const todos  = todo.find({"userId":user._id}).lean().exec();
+        let user = verifyToken(req.headers);
+        if(user){
+            const todos  = todo.find({"userId":user._id}).lean().exec();
         res.status(500).send(todos);
+        }
+        
     } catch (error) {
         res.send({message:error.message});
     }
@@ -101,9 +104,11 @@ app.post("todo", async(req,res)=>{
     
     try {
         let user = verifyToken(req.headers);
-        const Todo = todo.create({title : req.body,
-        userId : user._id});
-        return res.send(Todo);    
+        if(user){
+            const Todo = todo.create({title : req.body,
+                userId : user._id});
+                return res.send(Todo);  
+        }  
     } catch (error) {
         
     }
@@ -112,9 +117,13 @@ app.post("todo", async(req,res)=>{
 app.get("/todos:id", async(req,res) => {
     try {
         let user = verifyToken(req.headers);
-        
-        const Todo  = todo.findById(req.params.id).lean().exec();
+        if(user){
+            const Todo  = todo.findById(req.params.id).lean().exec();
         res.status(500).send(todo);
+        }else{
+            res.send({message:"Not loggedIn"})
+        }
+        
     } catch (error) {
         res.send({message:error.message});
     }
@@ -124,8 +133,12 @@ app.patch("/todos:id", async(req,res) => {
     try {
         let user = verifyToken(req.headers);
         
-        const Todo  = todo.findByIdAndUpdate(req.params.id,req.body).lean().exec();
+        if(user){
+            const Todo  = todo.findByIdAndUpdate(req.params.id,req.body).lean().exec();
         res.status(500).send(todo);
+        }else{
+            res.send({message:"Not loggedIn"})
+        }
     } catch (error) {
         res.send({message:error.message});
     }
@@ -134,9 +147,13 @@ app.patch("/todos:id", async(req,res) => {
 app.delete("/todos:id", async(req,res) => {
     try {
         let user = verifyToken(req.headers);
-        
-        const Todo  = todo.findByIdAndDelete4(req.params.id,req.body).lean().exec();
+        if(user){
+            const Todo  = todo.findByIdAndDelete(req.params.id,req.body).lean().exec();
         res.status(500).send(todo);
+        }else{
+            res.send({message:"Not loggedIn"})
+        }
+        
     } catch (error) {
         res.send({message:error.message});
     }
