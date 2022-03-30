@@ -1,20 +1,18 @@
 const express = require("express");
-const mongoose = require("mongoose")
+// const mongoose = require("mongoose")
 const {body,validationResult} = require("express-validator");
 const router = express.Router();
 // console.log(router)
 const User = require("../models/user.schema");
 
-router.post("/",
+router.post(
+    "/",
     body("first_name")
         .trim()
         .not()
-        .isString()
-        .bail()
-        .withMessage("enter")
         .isEmpty()
         .bail()
-        .withMessage("first name cannot be empty"),
+        .withMessage("First Name cannot be empty"),
     body("gender")
         .trim()
         .not()
@@ -39,11 +37,22 @@ router.post("/",
         .isEmpty()
         .bail()
         .withMessage("enter pincode").custom( function (val) {
-        if(val <0 || val >999999){
-        throw new Error("Incorrect pincode provided");
-         }
-         return true;
+            val = +val;
+            if(val <0 || val >999999){
+            throw new Error("Incorrect pincode provided");
+            }
+            return true;
      
+        }),
+    body("age")
+        .trim()
+        .custom( (val) => {
+           val = +val;
+          
+            if(val<6 || val>100){
+                throw new Error("Age must be between 6 and 100");
+            }
+            return true;
         }),
     body("email")
     .trim()
@@ -54,25 +63,21 @@ router.post("/",
     .isEmail()
     .bail()
     .withMessage("enter valid email")
-    .custom(async (req,res)=>{
-        try {
-            const errors = validationResult(req);
-            
-            if(!errors.isEmpty()){
-                return res.send({errors : errors.array()});
-            }
-    
-            const user = await User.find({"email" : req.email});
-            if(user){
-                res.send("user already taken")
-            }
-            return true;
-        } catch (error) {
-            return res.status({message : error.message});
+    .custom(async (value) => {
+        const user = await User.findOne({ email: value });
+  
+        if (user) {
+          throw new Error("Email is already taken");
         }
-     }),
+        return true;
+      }),
  async (req,res) => {
     try {
+        const errors = validationResult(req);
+        
+        if (!errors.isEmpty()) {
+          return res.status(400).send({ errors: errors.array() });
+        }
         const user = await User.create(req.body)
         res.send(user)
     } catch (error) {
@@ -80,14 +85,14 @@ router.post("/",
     } }
 )
 
-router.post("/:id",async (req,res) => {
-try {
-    const user = await User.create(req.body);
-    res.send(user);
-} catch (error) {
+// router.post("/:id",async (req,res) => {
+// try {
+//     const user = await User.create(req.body);
+//     res.send(user);
+// } catch (error) {
     
-}
-})
+// }
+// })
 
 module.exports = router;
  
