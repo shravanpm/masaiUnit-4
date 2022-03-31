@@ -103,7 +103,8 @@ app.get("/sections", async(req,res) => {
 
 app.get("/books/:id", async (req,res) =>{
   try {
-    const Books = await books.find({"authorId" : req.params.id}).populate("authors").lean().exec();
+    const Books = await books.find({"authorId" : req.params.id})
+    .populate({path : "authorId",select : ["name"]}).lean().exec();
     res.send({Books : Books});
   } catch (error) {
     res.send({sections : sections});
